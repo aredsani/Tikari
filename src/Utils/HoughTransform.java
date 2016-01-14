@@ -222,7 +222,7 @@ public class HoughTransform {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        String path = String.format("res/Example/CannyEdge.jpg");
+        String path = String.format("res/Example/Hough.jpg");
         BufferedImage mySourceImage = ImageIO.read(new File(path));
 
         BufferedImage myEdgeImage = Utils.ImageUtils.getCannyEdgeImage(mySourceImage);
@@ -236,7 +236,7 @@ public class HoughTransform {
         //below is Line extraction Part
 
         Vector<Point_2D> myLines = new Vector<>();
-        int nLines = 8;
+        int nLines = 4;
         for (int i = 0; i < nLines; i++) {
             myLines.add(outputData.getMaxIndex());
             outputData.cleanSurroundings(myLines.get(i), 30);
@@ -265,18 +265,26 @@ public class HoughTransform {
             }
             if (Line1 < 0 && Line2 > 0) {
                 myGraphics2D.drawLine((int) -1.0 * Line1 * (mySourceImage.getHeight() - Line2) / Line2, 0, 0, mySourceImage.getHeight() - Line2);
-                double m = 1.0*(mySourceImage.getHeight() - Line2)/(1.0 * Line1 * (mySourceImage.getHeight() - Line2) / Line2);
-                double c = -m*-1.0 * Line1 * (mySourceImage.getHeight() - Line2) / Line2;
-                myLinesMC.add(new TwoDPoint(m,c));
-                System.out.println();
-            } else if (Line2 < 0 && Line1 > 0)
+                double m = 1.0 * (mySourceImage.getHeight() - Line2) / (1.0 * Line1 * (mySourceImage.getHeight() - Line2) / Line2);
+                double c = -m * -1.0 * Line1 * (mySourceImage.getHeight() - Line2) / Line2;
+                myLinesMC.add(new TwoDPoint(m, c));
+            } else if (Line2 < 0 && Line1 > 0) {
                 myGraphics2D.drawLine(Line1, mySourceImage.getHeight(), (int) 1.0 * Line1 * (mySourceImage.getHeight() - Line2) / (-Line2), 0);
-
-            else if (Line2 < 0 && Line1 < 0) {
+                double m = 1.0 * (-mySourceImage.getHeight()) / ((1.0 * Line1 * (mySourceImage.getHeight() - Line2) / (-Line2)) - Line1);
+                double c = 1.0 * mySourceImage.getHeight() - (m * Line1);
+                myLinesMC.add(new TwoDPoint(m, c));
+            } else if (Line2 < 0 && Line1 < 0) {
                 System.out.println("Something unexpected happened in Drawing hough Lines");
-            } else
+            } else {
                 myGraphics2D.drawLine(Line1, mySourceImage.getHeight(), 0, mySourceImage.getHeight() - Line2);
+                double m = 1.0 * ((mySourceImage.getHeight() - Line2) - (mySourceImage.getHeight())) / ((0) - (Line1));
+                double c = mySourceImage.getHeight() - (m * Line1);
+                myLinesMC.add((new TwoDPoint(m, c)));
+            }
 
+        }
+        for (int i = 0; i < myLinesMC.size(); i++) {
+            System.out.println(i + " m = " + myLinesMC.get(i).x + " c = " + myLinesMC.get(i).y);
         }
 
         myGraphics2D.dispose();
