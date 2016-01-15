@@ -314,6 +314,7 @@ public class HoughTransform {
             TwoDPoint myPoint3 = Line.getIntersection(myLinesMC.get(3), myLinesMC.get(1));
             TwoDPoint myPoint4 = Line.getIntersection(myLinesMC.get(3), myLinesMC.get(0));
             BufferedImage myCopyofSourceImage = ImageIO.read(new File(path));
+            System.out.println("lol");
             Graphics2D myGraphics2D1 = myCopyofSourceImage.createGraphics();
             myGraphics2D1.setStroke(bs);
             myGraphics2D1.setColor(Color.BLUE);
