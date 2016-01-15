@@ -1,5 +1,6 @@
 package Utils;
 
+import Utils.GeometricObjects.Line;
 import Utils.GeometricObjects.Point_2D;
 import Utils.GeometricObjects.TwoDPoint;
 
@@ -248,7 +249,8 @@ public class HoughTransform {
         myGraphics2D.setStroke(bs);
         myGraphics2D.setColor(Color.RED);
         int maxRadius = (int) Math.ceil(Math.hypot(mySourceImage.getWidth(), mySourceImage.getHeight()));
-        Vector<TwoDPoint> myLinesMC = new Vector<>(); // Line of the form y = mx + c in image coordinates where I is m, and J is c
+
+        Vector<Line> myLinesMC = new Vector<>(); // Line of the form y = mx + c in image coordinates where I is m, and J is c
 
         for (int i = 0; i < nLines; i++) {
             int Line1;
@@ -267,24 +269,24 @@ public class HoughTransform {
                 myGraphics2D.drawLine((int) -1.0 * Line1 * (mySourceImage.getHeight() - Line2) / Line2, 0, 0, mySourceImage.getHeight() - Line2);
                 double m = 1.0 * (mySourceImage.getHeight() - Line2) / (1.0 * Line1 * (mySourceImage.getHeight() - Line2) / Line2);
                 double c = -m * -1.0 * Line1 * (mySourceImage.getHeight() - Line2) / Line2;
-                myLinesMC.add(new TwoDPoint(m, c));
+                myLinesMC.add(new Line(m, c));
             } else if (Line2 < 0 && Line1 > 0) {
                 myGraphics2D.drawLine(Line1, mySourceImage.getHeight(), (int) 1.0 * Line1 * (mySourceImage.getHeight() - Line2) / (-Line2), 0);
                 double m = 1.0 * (-mySourceImage.getHeight()) / ((1.0 * Line1 * (mySourceImage.getHeight() - Line2) / (-Line2)) - Line1);
                 double c = 1.0 * mySourceImage.getHeight() - (m * Line1);
-                myLinesMC.add(new TwoDPoint(m, c));
+                myLinesMC.add(new Line(m, c));
             } else if (Line2 < 0 && Line1 < 0) {
                 System.out.println("Something unexpected happened in Drawing hough Lines");
             } else {
                 myGraphics2D.drawLine(Line1, mySourceImage.getHeight(), 0, mySourceImage.getHeight() - Line2);
                 double m = 1.0 * ((mySourceImage.getHeight() - Line2) - (mySourceImage.getHeight())) / ((0) - (Line1));
                 double c = mySourceImage.getHeight() - (m * Line1);
-                myLinesMC.add((new TwoDPoint(m, c)));
+                myLinesMC.add((new Line(m, c)));
             }
 
         }
         for (int i = 0; i < myLinesMC.size(); i++) {
-            System.out.println(i + " m = " + myLinesMC.get(i).x + " c = " + myLinesMC.get(i).y);
+            System.out.println(i + " m = " + myLinesMC.get(i).m + " c = " + myLinesMC.get(i).c);
         }
 
         myGraphics2D.dispose();
