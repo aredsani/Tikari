@@ -110,6 +110,11 @@ public class HoughTransform {
             return max;
         }
 
+        /**
+         * In the returned Point_2D I is the theta and J is r
+         *
+         * @return Point_2D with I as theta and J as r in the hough coordinated i.e. They are not the image r and theta
+         */
         public Point_2D getMaxIndex() {
             int max = 0;
             Point_2D myPoint_2D = new Point_2D(0, 0);
@@ -242,6 +247,17 @@ public class HoughTransform {
             myLines.add(outputData.getMaxIndex());
             outputData.cleanSurroundings(myLines.get(i), 30);
         }
+        //sorting line so that almost parallel lines come together this is a bad hack to make sure points of intersection are cyclic.
+        for (int i = 0; i < nLines; i++) {
+            for (int j = i + 1; j < nLines; j++) {
+                if (myLines.get(i).getI() < myLines.get(j).getI()) {
+                    Point_2D myPoint2D = myLines.get(j);
+                    myLines.set(j, myLines.get(i));
+                    myLines.set(i, myPoint2D);
+                }
+            }
+        }
+
         //below is the line drawing part
         Graphics2D myGraphics2D = mySourceImage.createGraphics();
 
@@ -285,12 +301,32 @@ public class HoughTransform {
             }
 
         }
+        myGraphics2D.dispose();
+        ImageIO.write(mySourceImage, "jpg", new File("res/Example/HoughOutput.jpg"));
+
         for (int i = 0; i < myLinesMC.size(); i++) {
             System.out.println(i + " m = " + myLinesMC.get(i).m + " c = " + myLinesMC.get(i).c);
         }
 
-        myGraphics2D.dispose();
-        ImageIO.write(mySourceImage, "jpg", new File("res/Example/CannyEdgeOutput.jpg"));
+        if (nLines == 4) {
+            TwoDPoint myPoint1 = Line.getIntersection(myLinesMC.get(0), myLinesMC.get(2));
+            TwoDPoint myPoint2 = Line.getIntersection(myLinesMC.get(2), myLinesMC.get(1));
+            TwoDPoint myPoint3 = Line.getIntersection(myLinesMC.get(3), myLinesMC.get(1));
+            TwoDPoint myPoint4 = Line.getIntersection(myLinesMC.get(3), myLinesMC.get(0));
+            BufferedImage myCopyofSourceImage = ImageIO.read(new File(path));
+            Graphics2D myGraphics2D1 = myCopyofSourceImage.createGraphics();
+            myGraphics2D1.setStroke(bs);
+            myGraphics2D1.setColor(Color.BLUE);
+            myGraphics2D1.drawLine((int) myPoint1.x, (int) myPoint1.y, (int) myPoint2.x, (int) myPoint2.y);
+            myGraphics2D1.drawLine((int) myPoint3.x, (int) myPoint3.y, (int) myPoint2.x, (int) myPoint2.y);
+            myGraphics2D1.drawLine((int) myPoint3.x, (int) myPoint3.y, (int) myPoint4.x, (int) myPoint4.y);
+            myGraphics2D1.drawLine((int) myPoint1.x, (int) myPoint1.y, (int) myPoint4.x, (int) myPoint4.y);
+            myGraphics2D1.dispose();
+            ImageIO.write(myCopyofSourceImage, "jpg", new File("res/Example/HoughOutput1.jpg"));
+
+
+        }
+
         return;
     }
 }

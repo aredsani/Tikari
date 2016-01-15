@@ -30,5 +30,15 @@ public class Line {
         c = aintercept;
     }
 
+    public static TwoDPoint getIntersection(Line aLine1, Line aLine2){
+        if(aLine1.m==aLine2.m){
+            System.out.println("Lines are parallel");
+            return null;
+        }
+        double x = (aLine1.c-aLine2.c)/(aLine2.m-aLine1.m);
+        double y = (aLine1.m*x) + aLine1.c;
+        return new TwoDPoint(x,y);
+    }
+
 
 }
