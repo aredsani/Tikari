@@ -7,11 +7,15 @@ public class Point_2D {
     private int i;
     private int j;
 
-    public Point_2D(int x0, int y0)
-        {
+    public Point_2D(int x0, int y0) {
         setI(x0);
         setJ(y0);
-        }
+    }
+
+    public Point_2D(TwoDPoint aTwoDPoint) {
+        setI((int) aTwoDPoint.x);
+        setJ((int) aTwoDPoint.y);
+    }
 
     public int getI() {
         return i;

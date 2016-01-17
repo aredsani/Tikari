@@ -73,14 +73,14 @@ public class FindFourPoints {
     }
 
     private static Vector<Point_2D> getPointsByReducingImage(BufferedImage aImage) throws InterruptedException, IOException {
-        Vector<Point_2D> myPoints = new Vector<>();
+        Vector<Point_2D> myPointsForSmallImage = new Vector<>(); // First point is top left, second is bottom Right, THis are coordinates in scaled view
         JFrame myFrame = new JFrame();
         myFrame.setTitle("Click on 1st point");
         class CustomMouseListener implements MouseListener {
             @Override
             public void mouseClicked(MouseEvent e) {
-                myPoints.add(new Point_2D(e.getX(), e.getY()));
-                myFrame.setTitle(String.format("Click on %dth point", myPoints.size() + 1));
+                myPointsForSmallImage.add(new Point_2D(e.getX(), e.getY()));
+                myFrame.setTitle(String.format("Click on %dth point", myPointsForSmallImage.size() + 1));
             }
 
             @Override
@@ -118,34 +118,44 @@ public class FindFourPoints {
         myFrame.setVisible(true);
         while (myFrame.isVisible())
             Thread.sleep(1000);
-        int smallHeight = Math.abs(myPoints.get(1).getJ() - myPoints.get(0).getJ());
+
+        int smallHeight = Math.abs(myPointsForSmallImage.get(1).getJ() - myPointsForSmallImage.get(0).getJ());
         smallHeight = (int) (smallHeight / viewScaleFactor);
-        int smallWidth = Math.abs(myPoints.get(1).getI() - myPoints.get(0).getI());
+        int smallWidth = Math.abs(myPointsForSmallImage.get(1).getI() - myPointsForSmallImage.get(0).getI());
         smallWidth = (int) (smallWidth / viewScaleFactor);
 
         BufferedImage myImage = new BufferedImage(smallWidth, smallHeight, aImage.getType());
         for (int i = 0; i < myImage.getWidth(); i++) {
             for (int j = 0; j < myImage.getHeight(); j++) {
-                myImage.setRGB(i, j, aImage.getRGB((int) (myPoints.get(0).getI() / viewScaleFactor) + i, (int) (myPoints.get(0).getJ() / viewScaleFactor) + j));
+                myImage.setRGB(i, j, aImage.getRGB((int) (myPointsForSmallImage.get(0).getI() / viewScaleFactor) + i, (int) (myPointsForSmallImage.get(0).getJ() / viewScaleFactor) + j));
             }
         }
         ImageIO.write(myImage, "JPG", new File("ShravanPagalHai1.jpg"));
         myFrame.dispose();
-        myFrame.setSize(myImage.getWidth(), myImage.getHeight());
-        myFrame.removeAll();
-        panel = new JPanel();
-        panel.add(new JLabel(new ImageIcon(myImage)));
-//        panel.addMouseListener(new CustomMouseListener());
-        myFrame.add(panel);
-        myFrame.setVisible(true);
+
+        Vector<Point_2D> myPointsInReducedImage = Utils.HoughTransform.getPointsByHoughOnSource(myImage, 4);
+        Vector<Point_2D> myPointsInSourceImage = new Vector<>();
+
+        for (int i = 0; i < myPointsInReducedImage.size(); i++) {
+            myPointsInSourceImage.add(new Point_2D(myPointsInReducedImage.get(i).getI() + (int) (myPointsForSmallImage.get(0).getI() / viewScaleFactor), myPointsInReducedImage.get(i).getJ() + (int) (myPointsForSmallImage.get(0).getJ() / viewScaleFactor)));
+        }
+        return myPointsInSourceImage;
+//        myFrame.setSize(myImage.getWidth(), myImage.getHeight());
+//        myFrame.removeAll();
+//        panel = new JPanel();
+//        panel.add(new JLabel(new ImageIcon(myImage)));
+////        panel.addMouseListener(new CustomMouseListener());
+//        myFrame.add(panel);
+//        myFrame.setVisible(true);
 
 
-        while (myFrame.isVisible())
-            Thread.sleep(1000);
-        BufferedImage myImage1 = Utils.ImageUtils.detectEdges(myImage);
-        ImageIO.write(myImage1, "JPG", new File("ShravanPagalHai.jpg"));
+//        while (myFrame.isVisible())
+//            Thread.sleep(1000);
+//        BufferedImage myImage1 = Utils.ImageUtils.detectEdges(myImage);
+//        ImageIO.write(myImage1, "JPG", new File("ShravanPagalHai.jpg"));
+//        System.out.println("It came Here");
 
-        return null;
+//        return null;
     }
 
 

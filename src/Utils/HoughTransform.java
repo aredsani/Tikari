@@ -45,6 +45,94 @@ public class HoughTransform {
         return outputData;
     }
 
+    public static Vector<Point_2D> getPointsByHoughOnSource(BufferedImage aSourceImage, int aNumberOfPoints) {
+        BufferedImage myEdgeImage = Utils.ImageUtils.getCannyEdgeImage(aSourceImage);
+        return getPointsByHoughOnCannyEdge(myEdgeImage, aNumberOfPoints);
+
+
+    }
+
+    private static Vector<Point_2D> getPointsByHoughOnCannyEdge(BufferedImage aEdgeImage, int aNumberofPoints) {
+        if (aNumberofPoints == 4) {
+            ArrayData inputData = getArrayDataFromBufferedImage(aEdgeImage);
+            int minContrast = 200;
+            int ThetaAxis = 400;
+            int rAxis = 800;
+            ArrayData outputData = houghTransform(inputData, ThetaAxis, 2 * rAxis, minContrast);
+
+            Vector<Point_2D> myLines = new Vector<>();
+            for (int i = 0; i < aNumberofPoints; i++) {
+                myLines.add(outputData.getMaxIndex());
+                outputData.cleanSurroundings(myLines.get(i), 30);
+            }
+
+            //sorting line so that almost parallel lines come together this is a bad hack to make sure points of intersection are cyclic.
+            for (int i = 0; i < aNumberofPoints; i++) {
+                for (int j = i + 1; j < aNumberofPoints; j++) {
+                    if (myLines.get(i).getI() < myLines.get(j).getI()) {
+                        Point_2D myPoint2D = myLines.get(j);
+                        myLines.set(j, myLines.get(i));
+                        myLines.set(i, myPoint2D);
+                    }
+                }
+            }
+
+            int maxRadius = (int) Math.ceil(Math.hypot(aEdgeImage.getWidth(), aEdgeImage.getHeight()));
+
+            Vector<Line> myLinesMC = new Vector<>(); // Line of the form y = mx + c in image coordinates where I is m, and J is c
+
+            for (int i = 0; i < aNumberofPoints; i++) {
+                int Line1;
+                int Line2;
+                if (myLines.get(i).getI() != 0 && ((1.0 * myLines.get(i).getI() / ThetaAxis) != 0.5)) {
+                    Line1 = (int) (((myLines.get(i).getJ() - rAxis) * ((1.0 * maxRadius) / rAxis)) / Math.cos(((1.0 * myLines.get(i).getI() * Math.PI)) / ThetaAxis));
+                    Line2 = (int) (((myLines.get(i).getJ() - rAxis) * ((1.0 * maxRadius) / rAxis)) / Math.sin(((1.0 * myLines.get(i).getI() * Math.PI)) / ThetaAxis));
+                } else if (myLines.get(i).getI() == 0) {
+                    Line1 = (int) (((myLines.get(i).getJ() - rAxis) * (1.0 * maxRadius)) / rAxis);
+                    Line2 = 999999999;
+                } else {
+                    Line1 = 999999999;
+                    Line2 = (int) (((myLines.get(i).getJ() - rAxis) * (1.0 * maxRadius)) / rAxis);
+                }
+                if (Line1 < 0 && Line2 > 0) {
+//                    myGraphics2D.drawLine((int) -1.0 * Line1 * (mySourceImage.getHeight() - Line2) / Line2, 0, 0, mySourceImage.getHeight() - Line2);
+                    double m = 1.0 * (aEdgeImage.getHeight() - Line2) / (1.0 * Line1 * (aEdgeImage.getHeight() - Line2) / Line2);
+                    double c = -m * -1.0 * Line1 * (aEdgeImage.getHeight() - Line2) / Line2;
+                    myLinesMC.add(new Line(m, c));
+                } else if (Line2 < 0 && Line1 > 0) {
+//                    myGraphics2D.drawLine(Line1, mySourceImage.getHeight(), (int) 1.0 * Line1 * (mySourceImage.getHeight() - Line2) / (-Line2), 0);
+                    double m = 1.0 * (-aEdgeImage.getHeight()) / ((1.0 * Line1 * (aEdgeImage.getHeight() - Line2) / (-Line2)) - Line1);
+                    double c = 1.0 * aEdgeImage.getHeight() - (m * Line1);
+                    myLinesMC.add(new Line(m, c));
+                } else if (Line2 < 0 && Line1 < 0) {
+                    System.out.println("Something unexpected happened in Drawing hough Lines");
+                } else {
+//                    myGraphics2D.drawLine(Line1, mySourceImage.getHeight(), 0, mySourceImage.getHeight() - Line2);
+                    double m = 1.0 * ((aEdgeImage.getHeight() - Line2) - (aEdgeImage.getHeight())) / ((0) - (Line1));
+                    double c = aEdgeImage.getHeight() - (m * Line1);
+                    myLinesMC.add((new Line(m, c)));
+                }
+            }
+            TwoDPoint myPoint1 = Line.getIntersection(myLinesMC.get(0), myLinesMC.get(2));
+            TwoDPoint myPoint2 = Line.getIntersection(myLinesMC.get(2), myLinesMC.get(1));
+            TwoDPoint myPoint3 = Line.getIntersection(myLinesMC.get(3), myLinesMC.get(1));
+            TwoDPoint myPoint4 = Line.getIntersection(myLinesMC.get(3), myLinesMC.get(0));
+//            BufferedImage myCopyofSourceImage = ImageIO.read(new File(path));
+            System.out.println("lol");
+
+            Vector<Point_2D> myFinalPoints = new Vector<>();
+            myFinalPoints.add(new Point_2D(myPoint1));
+            myFinalPoints.add(new Point_2D(myPoint2));
+            myFinalPoints.add(new Point_2D(myPoint3));
+            myFinalPoints.add(new Point_2D(myPoint4));
+            return  myFinalPoints;
+
+        } else {
+            System.out.println("GetPointsByHough is written for only 4 points, you are trying to find " + aNumberofPoints + "points");
+            return null;
+        }
+    }
+
     public static class ArrayData {
         public final int[] dataArray;
         public final int width;
